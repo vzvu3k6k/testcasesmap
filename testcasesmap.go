@@ -1,16 +1,14 @@
 package testcasesmap
 
 import (
-	"go/ast"
+	"go/types"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
-	"golang.org/x/tools/go/ast/inspector"
 )
 
-const doc = "testcasesmap is ..."
+const doc = "testcasesmap finds testcases that are not defined with map"
 
-// Analyzer is ...
 var Analyzer = &analysis.Analyzer{
 	Name: "testcasesmap",
 	Doc:  doc,
@@ -20,21 +18,15 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-func run(pass *analysis.Pass) (any, error) {
-	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
-
-	nodeFilter := []ast.Node{
-		(*ast.Ident)(nil),
-	}
-
-	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		switch n := n.(type) {
-		case *ast.Ident:
-			if n.Name == "gopher" {
-				pass.Reportf(n.Pos(), "identifier is gopher")
+func run(pass *analysis.Pass) (interface{}, error) {
+	for ident, obj := range pass.TypesInfo.Defs {
+		switch ident.Name {
+		case "testcases":
+			_, isMap := obj.Type().Underlying().(*types.Map)
+			if !isMap {
+				pass.Reportf(ident.Pos(), "use map for %s", ident.Name)
 			}
 		}
-	})
-
+	}
 	return nil, nil
 }
