@@ -7,7 +7,7 @@ import (
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
 
-const doc = "testcasesmap finds testcases that are not defined with map"
+const doc = "testcasesmap finds `testcases` variables that are not defined with map"
 
 var Analyzer = &analysis.Analyzer{
 	Name: "testcasesmap",
